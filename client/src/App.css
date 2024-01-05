@@ -1,0 +1,12 @@
+button{
+    padding: 7px 25px;
+    background: rgb(251, 39, 39);
+    color: white;
+    border: 1px solid rgb(203, 203, 203);
+}
+.inactive{
+    background: rgb(187, 0, 0);
+    color: rgb(198, 198, 198);
+    pointer-events: none;
+    cursor: not-allowed;
+}

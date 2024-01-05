@@ -1,12 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import "./App.css";
 
 function App() {
   const [files, setFiles] = useState([]);
-
-  const uploadnow = (e) => {
+  const [data, setData] = useState({
+    name: "",
+    contact: "",
+    imageURl: [],
+  });
+  const [uploading, setUploading] = useState(false);
+  useEffect(()=>{
+    if (!uploading && data.imageURl.length>0) {
+      console.log(data);
+    }
+  }, [uploading, data])
+  const uploadnow = async (e) => {
     e.preventDefault();
+    setUploading(true);
+    console.log(data);
     if (files.length == 0) {
       alert("Please select at least one image");
     } else {
@@ -17,8 +29,18 @@ function App() {
 
       axios
         .post("http://localhost:3000/upload", formData)
-        .then((response) => {
+        .then(async (response) => {
           console.log(response);
+          const newImageURLs = response.data.uploadResults.map((dt) => dt.url);
+          console.log(newImageURLs);
+          // Update the state using the previous state
+          setData((prevData) => {
+            const newData = { ...prevData, imageURl: newImageURLs };
+            return newData;
+          });
+          
+          console.log(data);
+          setUploading(false);
         })
         .catch((error) => {
           console.log(error);
@@ -47,9 +69,19 @@ function App() {
     updatedFiles.splice(index, 1);
     setFiles(updatedFiles);
   };
-
+  const handleChange = (e) => {
+    setData({ ...data, [e.target.name]: e.target.value });
+  };
   return (
     <form action="/upload" method="post" encType="multipart/form-data">
+      <label htmlFor="name">
+        Enter your name: <br />
+        <input type="text" name="name" onChange={handleChange} />
+      </label>
+      <label htmlFor="mobile">
+        Enter your Contact Number: <br />
+        <input type="tel" name="contact" onChange={handleChange} />
+      </label>
       <input
         type="file"
         name="files"
@@ -57,6 +89,7 @@ function App() {
         onChange={handleFileChange}
         multiple
         accept="image/*"
+        required
       />
       <br />
       {files.length > 0 ? (
@@ -70,9 +103,9 @@ function App() {
                   top: "10px",
                   right: "10px",
                   background: "white",
-                  height:"20px",
-                  width:"20px",
-                  borderRadius:"50%"
+                  height: "20px",
+                  width: "20px",
+                  borderRadius: "50%",
                 }}
                 className="delete-button"
                 onClick={() => handleRemoveImage(index)}
@@ -90,8 +123,13 @@ function App() {
       ) : (
         <span>No image uploaded</span>
       )}
-      <button type="submit" onClick={uploadnow}>
-        Upload now
+      <br />
+      <button
+        type="submit"
+        onClick={uploadnow}
+        className={`${uploading ? "inactive" : ""}`}
+      >
+        <span>{uploading ? "loading..." : "Upload now"}</span>
       </button>
     </form>
   );
